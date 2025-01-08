@@ -12,11 +12,15 @@ bot = Bot(token=api)
 dp = Dispatcher(bot, storage=MemoryStorage())
 kb = ReplyKeyboardMarkup(
     keyboard=[
-        [KeyboardButton(text="Расчитать калории")],
+        [KeyboardButton(text="Рассчитать")],
         [KeyboardButton(text="Информация")]
     ], resize_keyboard=True
 )
-
+inl_kb = InlineKeyboardMarkup()
+calor_but = InlineKeyboardButton(text='Рассчитать норму калорий', callback_data='calories')
+formul_but = InlineKeyboardButton(text='Формулы расчёта', callback_data='formulas')
+inl_kb.add(calor_but)
+inl_kb.add(formul_but)
 
 class UserState(StatesGroup):
     age = State()
@@ -24,10 +28,24 @@ class UserState(StatesGroup):
     weight = State()
 
 
-@dp.message_handler(text=['Расчитать калории'])
-async def set_age(message):
-    await message.answer('Введите свой возраст:')
+@dp.message_handler(text='Рассчитать')
+async def main_menu(message):
+    await message.answer('Выберите опцию:', reply_markup=inl_kb)
+
+
+@dp.callback_query_handler(text='formulas')
+async def get_formulas(call):
+    await call.message.answer(f'Упрощенный вариант формулы Миффлина-Сан Жеора:\n'
+                              f'Для мужчин: 10 х вес (кг) + 6,25 x рост (см) – 5 х возраст (г) + 5\n'
+                              f'для женщин: 10 x вес (кг) + 6,25 x рост (см) – 5 x возраст (г) – 161')
+    await call.answer()
+
+
+@dp.callback_query_handler(text="calories")
+async def set_age(call):
+    await call.message.answer('Введите свой возраст:')
     await UserState.age.set()
+    await call.answer()
 
 
 @dp.message_handler(state=UserState.age)
