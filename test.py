@@ -5,15 +5,15 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.dispatcher import FSMContext
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-import time
 
-api = ''
+
+api = '7759754578:AAHgeVXP3zhIOxjgJZ9uL6Yygjm7vHdS80E'
 bot = Bot(token=api)
 dp = Dispatcher(bot, storage=MemoryStorage())
 kb = ReplyKeyboardMarkup(
     keyboard=[
-        [KeyboardButton(text="Рассчитать"), KeyboardButton(text="Информация")],
-        [KeyboardButton(text="Купить")]
+        [KeyboardButton(text="Рассчитать")],
+        [KeyboardButton(text="Информация")]
     ], resize_keyboard=True
 )
 inl_kb = InlineKeyboardMarkup()
@@ -21,7 +21,6 @@ calor_but = InlineKeyboardButton(text='Рассчитать норму кало�
 formul_but = InlineKeyboardButton(text='Формулы расчёта', callback_data='formulas')
 inl_kb.add(calor_but)
 inl_kb.add(formul_but)
-
 
 class UserState(StatesGroup):
     age = State()
@@ -59,6 +58,8 @@ async def set_growth(message, state):
 @dp.message_handler(state=UserState.growth)
 async def set_weight(message, state):
     await state.update_data(growth=message.text)
+    if int(message) >  199:
+        await message.answer('Не пизди')
     await message.answer('Введите свой вес:')
     await UserState.weight.set()
 
@@ -68,6 +69,10 @@ async def send_calories(message, state):
     await state.update_data(weight=message.text)
     data = await state.get_data()
     calories_calk_male = 10 * int(data["weight"]) + 6.25 * int(data["growth"]) - 5 * int(data["age"]) + 5
+    user_id = message.from_user.id
+    with open('module_13_2', 'a') as file:
+        file.write(f'{user_id}: {data["weight"]}, {data["age"]}, {data["growth"]}\n')
+    file.close()
     await message.answer(
         f'Ваша норма каллорий для поддержания нормального веса:\nесли вы мужчина: {calories_calk_male}\nесли вы женщина: {calories_calk_male - 166}')
     await state.finish()
