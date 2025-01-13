@@ -5,6 +5,7 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.dispatcher import FSMContext
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+import time
 
 
 api = ''
@@ -12,8 +13,8 @@ bot = Bot(token=api)
 dp = Dispatcher(bot, storage=MemoryStorage())
 kb = ReplyKeyboardMarkup(
     keyboard=[
-        [KeyboardButton(text="Рассчитать")],
-        [KeyboardButton(text="Информация")]
+        [KeyboardButton(text="Рассчитать"), KeyboardButton(text="Информация")],
+        [KeyboardButton(text="Купить")]
     ], resize_keyboard=True
 )
 inl_kb = InlineKeyboardMarkup()
@@ -22,12 +23,43 @@ formul_but = InlineKeyboardButton(text='Формулы расчёта', callback
 inl_kb.add(calor_but)
 inl_kb.add(formul_but)
 
+products_kb = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [InlineKeyboardButton(text='Product1', callback_data="product_buying"),
+         InlineKeyboardButton(text='Product2', callback_data="product_buying"),
+         InlineKeyboardButton(text='Product3', callback_data="product_buying"),
+         InlineKeyboardButton(text='Product4', callback_data="product_buying")
+         ]
+    ]
+)
+
+
+
 class UserState(StatesGroup):
     age = State()
     growth = State()
     weight = State()
 
+@dp.message_handler(text= 'Купить')
+async def get_buying_list(message):
+    with open('1.jpg', 'rb') as img:
+        await message.answer_photo(img, 'Название: Product 1\nОписание: Описание 1\nЦена: 100', )
+    time.sleep(1)
+    with open('2.jpg', 'rb') as img:
+        await message.answer_photo(img, 'Название: Product 2\nОписание: Описание 2\nЦена: 200')
+    time.sleep(1)
+    with open('3.jpg', 'rb') as img:
+        await message.answer_photo(img, 'Название: Product 3\nОписание: Описание 3\nЦена: 300')
+    time.sleep(1)
+    with open('4.jpg', 'rb') as img:
+        await message.answer_photo(img, 'Название: Product 4\nОписание: Описание 4\nЦена: 400')
+    await message.answer("Выберите продукт для покупки:", reply_markup=products_kb)
 
+
+@dp.callback_query_handler(text="product_buying")
+async def send_confirm_message(call):
+    await call.message.answer('Вы успешно приобрели продукт!')
+    await call.answer()
 @dp.message_handler(text='Рассчитать')
 async def main_menu(message):
     await message.answer('Выберите опцию:', reply_markup=inl_kb)
@@ -82,6 +114,7 @@ async def start(message):
 async def all_message(message):
     print('Введите команду /start, чтобы начать общение.')
     await message.answer("Введите команду /start, чтобы начать общение.")
+
 
 
 if __name__ == '__main__':
